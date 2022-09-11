@@ -29,5 +29,4 @@ model UserGame {
   game     Game   @relation(fields: [gameId], references: [id])
   gameId   Int
   time     String @default("0")
-  serverId String
 }
