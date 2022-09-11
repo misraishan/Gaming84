@@ -12,48 +12,13 @@ const commands = [
         })
         .addStringOption((opt) => {
             return opt.setName("name").setDescription("Write the name of a game.").setRequired(false);
-        })
-        /*
-        .addSubcommandGroup((group) => {
-            return group
-                .setName("options")
-                .setDescription("Options for different sub commands.")
-                .addSubcommand(
-                    (subCommand) => {
-                        return subCommand
-                            .setName("user")
-                            .setDescription("Views the statistics of a specific user.")
-                            .addMentionableOption((opt) => {
-                                return opt.setName("user").setDescription("Mention a user.").setRequired(false);
-                            });
-                    }
-                )
-                .addSubcommand(
-                    (subCommand) => {
-                        return subCommand
-                            .setName("game")
-                            .setDescription("Views the statistics of a specific game based on ID/name")
-                            .addStringOption((opt) => {
-                                return opt.setName("name").setDescription("Write the name of a game.").setRequired(true);
-                            });
-                    }
-                );
-                
         }),
     new SlashCommandBuilder()
-        .setName("activity")
-        .setDescription("Shows your game activity since the 1st of the month."),
+        .setName("optout")
+        .setDescription("Gives users the option to opt out of bot tracking."),
     new SlashCommandBuilder()
-        .setName("serveractivity")
-        .setDescription("Shows the activity of the server since the 1st of the month."),
-    new SlashCommandBuilder()
-        .setName("gameactivity")
-        .setDescription("Shows monthly activity for a specific game.")
-        .addStringOption(option => option
-            .setName("game")
-            .setDescription("The game to show activity for.")
-            .setRequired(true)),
-            */
+        .setName("optin")
+        .setDescription("Gives users the ability to opt in if previously opted out.")
 ]
 
 config({ path: "./.env" });
