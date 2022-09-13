@@ -13,7 +13,7 @@ export async function optout(interaction: ChatInputCommandInteraction<CacheType>
         });
 
         await interaction.reply({ephemeral: true, content: "You've successfully opted out!"})
-
+        return;
     }
     if (!user?.isOptedIn) {
         await interaction.reply({ephemeral: true, content: "Already opted out! Consider opting back in with `/optin`?"})
