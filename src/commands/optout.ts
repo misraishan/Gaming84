@@ -3,6 +3,18 @@ import { db } from "..";
 
 export async function optout(interaction: ChatInputCommandInteraction<CacheType>) {
     const user = await db.user.findFirst({where: {id: interaction.user.id}})
+
+    if (user == null) {
+        await db.user.create({
+            data: {
+                id: interaction.user.id,
+                isOptedIn: false,
+            }
+        });
+
+        await interaction.reply({ephemeral: true, content: "You've successfully opted out!"})
+
+    }
     if (!user?.isOptedIn) {
         await interaction.reply({ephemeral: true, content: "Already opted out! Consider opting back in with `/optin`?"})
         return;
