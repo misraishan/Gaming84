@@ -58,5 +58,5 @@ export async function generateDonut(user: string) {
 
   const image = await chart.renderToBuffer(config);
 
-  return { image, gameList };
+  return { image, gameList, error: null };
 }

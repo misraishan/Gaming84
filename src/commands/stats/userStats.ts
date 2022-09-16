@@ -21,9 +21,11 @@ export async function statsHandler(
       .replace(/[<@>]/g, "") || interaction.user.id;
 
   if (user) {
-    const { image, gameList } = await generateDonut(user).catch((err) => {
-      return interaction.reply(`Could not find <@${user}> in our database.`);
+    const { image, gameList, error } = await generateDonut(user).catch(async (err) => {
+      await interaction.reply(`Could not find <@${user}> in our database.`);
+      return { image: null, gameList: null, error: err };
     });
+    if (error != null || image == null) return;
 
     const file = new AttachmentBuilder(image, { name: `image.png` });
 
