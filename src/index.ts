@@ -12,127 +12,134 @@ import { statsHandler } from "./commands/stats/userStats";
 config({ path: "../.env" });
 
 const token = process.env.TOKEN;
-export const client = new Client({intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildPresences
-]});
+export const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildPresences],
+});
 
 export const db = new PrismaClient();
 
 client.once("ready", () => {
-    console.log("Ready!");
+  console.log("Ready!");
 });
 
 client.login(token);
 
 // Command handler
-client.on("interactionCreate", async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
 
-    const command = interaction.commandName;
+  const command = interaction.commandName;
 
-    // Ping command
-    if (command === "ping") {
-        await interaction.reply("Pong!");
-    }
+  // Ping command
+  if (command === "ping") {
+    await interaction.reply("Pong!");
+  }
 
-    // Stats command 
-    if (command === "stats" && interaction.options.getString("name") && interaction.options.getMentionable("user")) userGameStats(interaction)
-    else if (command === "stats" && interaction.options.getString("name")) gameStats(interaction)
-    else if (command === "stats") statsHandler(interaction);
+  // Stats command
+  if (
+    command === "stats" &&
+    interaction.options.getString("name") &&
+    interaction.options.getMentionable("user")
+  )
+    userGameStats(interaction);
+  else if (command === "stats" && interaction.options.getString("name"))
+    gameStats(interaction);
+  else if (command === "stats") statsHandler(interaction);
 
-    // Opt in/opt out manager
-    if (command === "optout") optout(interaction);
-    if (command === "optin") optIn(interaction);
-})
+  // Opt in/opt out manager
+  if (command === "optout") optout(interaction);
+  if (command === "optin") optIn(interaction);
+});
 
 // Presence listener, can't be in seperate file just bc??? :(
 client.on("presenceUpdate", async (oldPresence, newPresence) => {
-    if (oldPresence?.user?.bot) return;
-    if (newPresence == null) return;
-    const newActivites = newPresence?.activities;
-    const activities = oldPresence?.activities;
+  if (oldPresence?.user?.bot) return;
+  if (newPresence == null) return;
+  const newActivites = newPresence?.activities;
+  const activities = oldPresence?.activities;
 
-    if (!activities) return;
+  if (!activities) return;
 
-    const user = await db.user.findFirst({where: {id: oldPresence.userId}});
-    if (!user?.isOptedIn) return;
+  const user = await db.user.findFirst({ where: { id: oldPresence.userId } });
+  if (!user?.isOptedIn) return;
 
-    for (const activity of activities) {
-        if (activity.type === 0) {
+  for (const activity of activities) {
+    if (activity.type === 0) {
+      if (newActivites.includes(activity)) continue;
 
-            if (newActivites.includes(activity)) continue;
+      let game;
 
-            let game;
-
-            if (activity.applicationId != null) {
-                game = await db.game.findFirst({ where: { appId: activity.applicationId } })
-                if (!game) {
-                    game = await db.game.create({
-                        data: {
-                            name: activity.name,
-                            appId: activity.applicationId
-                        }
-                    });
-                }
-
-            } else {
-                // TODO: Migrate game if another of the same name has an id.
-                game = await db.game.findFirst({where: { name: activity.name }})
-                if (!game) {
-                    game = await db.game.create({
-                        data: {
-                            name: activity.name,
-                        }
-                    });
-                }
-            }
-
-            if (!game) return;
-
-            await db.user.upsert({
-                where: {
-                    id: newPresence.userId
-                },
-                create: {
-                    id: newPresence.userId,
-                },
-                update: {}
-            })
-
-            const userGame = await db.userGame.findFirst({where: {
-                userId: newPresence.userId,
-                AND: {
-                    gameId: game?.id
-                }
-            }})
-
-            const time = getTime(userGame?.time, activity);
-
-            await db.userGame.upsert({
-                where: {
-                    id: userGame?.id || -1
-                },
-                create: {
-                    gameId: game.id,
-                    time: time,
-                    userId: newPresence.userId,
-                },
-                update: {
-                    time: time
-                }
-            })
+      if (activity.applicationId != null) {
+        game = await db.game.findFirst({
+          where: { appId: activity.applicationId },
+        });
+        if (!game) {
+          game = await db.game.create({
+            data: {
+              name: activity.name,
+              appId: activity.applicationId,
+            },
+          });
         }
+      } else {
+        // TODO: Migrate game if another of the same name has an id.
+        game = await db.game.findFirst({ where: { name: activity.name } });
+        if (!game) {
+          game = await db.game.create({
+            data: {
+              name: activity.name,
+            },
+          });
+        }
+      }
+
+      if (!game) return;
+
+      await db.user.upsert({
+        where: {
+          id: newPresence.userId,
+        },
+        create: {
+          id: newPresence.userId,
+        },
+        update: {},
+      });
+
+      const userGame = await db.userGame.findFirst({
+        where: {
+          userId: newPresence.userId,
+          AND: {
+            gameId: game?.id,
+          },
+        },
+      });
+
+      const time = getTime(userGame?.time, activity);
+
+      await db.userGame.upsert({
+        where: {
+          id: userGame?.id || -1,
+        },
+        create: {
+          gameId: game.id,
+          time: time,
+          userId: newPresence.userId,
+        },
+        update: {
+          time: time,
+        },
+      });
     }
+  }
 });
 
-function getTime(oldTime : string | undefined | number , activity : Activity) {
-    if (activity.createdTimestamp) {
-        if (oldTime == undefined) {
-            oldTime = 0
-        } else {
-            oldTime = parseInt(oldTime as string);
-        }
-        return (oldTime + (Date.now() - activity.createdAt.getTime())).toString()
+function getTime(oldTime: string | undefined | number, activity: Activity) {
+  if (activity.createdTimestamp) {
+    if (oldTime == undefined) {
+      oldTime = 0;
+    } else {
+      oldTime = parseInt(oldTime as string);
     }
+    return (oldTime + (Date.now() - activity.createdAt.getTime())).toString();
+  }
 }
