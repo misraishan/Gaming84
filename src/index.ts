@@ -61,11 +61,13 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (!activities) return;
 
   const user = await db.user.findFirst({ where: { id: oldPresence.userId } });
-  if (!user?.isOptedIn) return;
+  if (user !== null && !user?.isOptedIn) return;
 
   for (const activity of activities) {
     if (activity.type === 0) {
-      if (newActivites.includes(activity)) continue;
+        for (const newAct of newActivites) {
+            if (newAct.name === activity.name) continue;
+        }
 
       let game;
 
