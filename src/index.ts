@@ -65,9 +65,15 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
   for (const activity of activities) {
     if (activity.type === 0) {
-        for (const newAct of newActivites) {
-            if (newAct.name === activity.name) continue;
+      let isPresent: Boolean = false;
+      for (const newAct of newActivites) {
+        if (newAct.equals(activity)) {
+          isPresent = true;
+          return;
         }
+      }
+
+      if (isPresent) continue;
 
       let game;
 
@@ -142,6 +148,6 @@ function getTime(oldTime: string | undefined | number, activity: Activity) {
     } else {
       oldTime = parseInt(oldTime as string);
     }
-    return (oldTime + (Date.now() - activity.createdAt.getTime())).toString();
+    return (oldTime + (Date.now() - activity.createdTimestamp)).toString();
   }
 }
