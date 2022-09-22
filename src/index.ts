@@ -76,6 +76,7 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
   const user = await db.user.findFirst({ where: { id: oldPresence.userId } });
   if (user !== null && !user?.isOptedIn) return;
+  const activityList: string[] = [];
 
   for (const activity of activities) {
     if (activity.type === 0) {
@@ -88,6 +89,9 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
       }
 
       if (isPresent) continue;
+
+      if (activityList.includes(activity.name)) continue;
+      else activityList.push(activity.name);
 
       let game;
 
