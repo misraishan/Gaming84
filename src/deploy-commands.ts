@@ -23,9 +23,10 @@ const commands = [
     })
     .addStringOption((opt) => {
       return opt
-        .setName("name")
+        .setName("game")
         .setDescription("Write the name of a game.")
-        .setRequired(false);
+        .setRequired(false)
+        .setAutocomplete(true);
     }),
   new SlashCommandBuilder()
     .setName("optout")

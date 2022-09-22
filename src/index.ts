@@ -38,11 +38,11 @@ client.on("interactionCreate", async (interaction) => {
   // Stats command
   if (
     command === "stats" &&
-    interaction.options.getString("name") &&
+    interaction.options.getString("game") &&
     interaction.options.getMentionable("user")
   )
     userGameStats(interaction);
-  else if (command === "stats" && interaction.options.getString("name"))
+  else if (command === "stats" && interaction.options.getString("game"))
     gameStats(interaction);
   else if (command === "stats") statsHandler(interaction);
 
@@ -50,6 +50,20 @@ client.on("interactionCreate", async (interaction) => {
   if (command === "optout") optout(interaction);
   if (command === "optin") optIn(interaction);
 });
+
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isAutocomplete()) return;
+
+	if (interaction.commandName === 'stats') {
+		const focusedValue = interaction.options.getFocused();
+		const choices = await db.game.findMany({take: 25});
+		const filtered = choices.filter(choice => choice.name.startsWith(focusedValue));
+		await interaction.respond(
+			filtered.map(choice => ({ name: choice.name, value: choice.name })),
+		);
+	}
+});
+
 
 // Presence listener, can't be in seperate file just bc??? :(
 client.on("presenceUpdate", async (oldPresence, newPresence) => {

@@ -5,7 +5,7 @@ import { convertToReadableTime } from "./convertTime";
 export async function gameStats(
   interaction: ChatInputCommandInteraction<CacheType>
 ) {
-  const gameInfo = interaction.options.getString("name") as string;
+  const gameInfo = interaction.options.getString("game") as string;
   let gameDb;
 
   if (isNaN(parseInt(gameInfo))) {

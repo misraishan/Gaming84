@@ -11,7 +11,7 @@ export async function userGameStats(
       .getMentionable("user")
       ?.toString()
       .replace(/[<@>]/g, "") || interaction.user.id;
-  const gameInfo = interaction.options.getString("name") as string;
+  const gameInfo = interaction.options.getString("game") as string;
   const game = isNaN(parseInt(gameInfo)) ? gameInfo : parseInt(gameInfo);
 
   const gameList = await db.userGame.findMany({
