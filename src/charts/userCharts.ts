@@ -1,8 +1,7 @@
 import { db } from "..";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import { randomInt } from "crypto";
-
-let config: any;
+import { Chart } from "chart.js";
 
 function getData(labels: string[], data: string[]) {
   const randColors = [];
@@ -40,7 +39,7 @@ export async function generateDonut(user: string) {
     data.push(game.time);
   });
 
-  config = {
+  const config : any = {
     type: "doughnut",
     data: getData(labels, data),
     options: {
@@ -51,9 +50,10 @@ export async function generateDonut(user: string) {
     },
   };
 
-  const width = 400; //px
-  const height = 400; //px
-  const backgroundColour = "White"; // Uses https://www.w3schools.com/tags/canvas_fillstyle.asp
+  const width = 400;
+  const height = 400;
+  Chart.defaults.color = "White"
+  const backgroundColour = "#2F3037";
   const chart = new ChartJSNodeCanvas({ width, height, backgroundColour });
 
   const image = await chart.renderToBuffer(config);
