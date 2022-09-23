@@ -1,12 +1,11 @@
 // Discord bot url https://discord.com/api/oauth2/authorize?client_id=1017643869908774963&permissions=139586750528
 // &redirect_uri=http%3A%2F%2Flocalhost%3A3000&scope=bot%20applications.commands
 import { PrismaClient } from "@prisma/client";
-import { Activity, Client, GatewayIntentBits } from "discord.js";
+import { Activity, Client, GatewayIntentBits, Presence } from "discord.js";
 import { config } from "dotenv";
 import { setTimeout } from "timers/promises";
 import { optIn } from "./commands/optin";
 import { optout } from "./commands/optout";
-import { convertToReadableTime } from "./commands/stats/convertTime";
 import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
@@ -21,8 +20,21 @@ export const client = new Client({
 export const db = new PrismaClient();
 
 client.once("ready", () => {
+ client.guilds.cache.size
   console.log("Ready!");
 });
+
+client.on("guildCreate", () => {
+  client.user?.setPresence({
+    activities: [{name: `Tracking ${client.guilds.cache.size} servers`, type: 0, url: "https://hayhay.dev/"}]
+  })
+})
+
+client.on("guildDelete", () => {
+  client.user?.setPresence({
+    activities: [{name: `Tracking ${client.guilds.cache.size} servers`, type: 0, url: "https://hayhay.dev/"}]
+  })
+})
 
 client.login(token);
 
@@ -133,7 +145,7 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
       await db.userGame.upsert({
         where: {
-          id: userGame?.id || -1,
+          id: userGame?.id,
         },
         include: {user: true},
         create: {
