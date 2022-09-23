@@ -20,8 +20,10 @@ export const client = new Client({
 export const db = new PrismaClient();
 
 client.once("ready", () => {
- client.guilds.cache.size
   console.log("Ready!");
+  client.user?.setPresence({
+    activities: [{name: `Tracking ${client.guilds.cache.size} servers`, type: 0, url: "https://hayhay.dev/"}]
+  })
 });
 
 client.on("guildCreate", () => {
