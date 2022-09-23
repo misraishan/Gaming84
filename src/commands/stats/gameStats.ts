@@ -8,17 +8,10 @@ export async function gameStats(
   const gameInfo = interaction.options.getString("game") as string;
   let gameDb;
 
-  if (isNaN(parseInt(gameInfo))) {
-    gameDb = await db.game.findFirst({
-      where: { name: gameInfo },
-      include: { UserGame: true },
-    });
-  } else {
-    gameDb = await db.game.findFirst({
-      where: { appId: gameInfo },
-      include: { UserGame: true },
-    });
-  }
+  gameDb = await db.game.findFirst({
+    where: { name: gameInfo },
+    include: { UserGame: true },
+  });
 
   if (!gameDb) return interaction.reply("Not a valid game in our database.");
 

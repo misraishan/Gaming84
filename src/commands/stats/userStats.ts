@@ -8,23 +8,23 @@ import {
   User,
   CommandInteractionOptionResolver,
 } from "discord.js";
-import { client } from "../..";
+import { client, db } from "../..";
 import { generateDonut } from "../../charts/userCharts";
 import { convertToReadableTime } from "./convertTime";
 
 export async function statsHandler(
   interaction: ChatInputCommandInteraction<CacheType>
 ) {
-  const user =
+  const userId =
     interaction.options
       .getMentionable("user")
       ?.toString()
       .replace(/[<@>]/g, "") || interaction.user.id;
 
-  if (user) {
-    const { image, gameList, error } = await generateDonut(user).catch(
+  if (userId) {
+    const { image, gameList, error } = await generateDonut(userId).catch(
       async (err) => {
-        await interaction.reply(`Could not find <@${user}> in our database.`);
+        await interaction.reply(`Could not find <@${userId}> in our database.`);
         return { image: null, gameList: null, error: err };
       }
     );
@@ -32,7 +32,9 @@ export async function statsHandler(
 
     const file = new AttachmentBuilder(image, { name: `image.png` });
 
-    const interactionUser = await client.users.fetch(user);
+    const interactionUser = await client.users.fetch(userId);
+    const user = await db.user.findFirst({where: {id: (interactionUser.id)}});
+    if (!user) { await interaction.reply(`Could not find <@${userId}> in our database.`); }
 
     const embed = new EmbedBuilder()
       .setColor("Purple")
@@ -44,6 +46,7 @@ export async function statsHandler(
           TimestampStyles.ShortDateTime
         )}`
       )
+      .setDescription(`Last played ${user?.lastPlayedGame} for ${convertToReadableTime(user?.lastPlayedTime as string)}`)
       .setImage(`attachment://image.png`);
 
     gameList.forEach((val, idx) => {

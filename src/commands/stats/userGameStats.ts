@@ -1,3 +1,4 @@
+import { Game, UserGame } from "@prisma/client";
 import { ChatInputCommandInteraction, CacheType } from "discord.js";
 import { isNumberObject } from "util/types";
 import { db } from "../..";
@@ -12,36 +13,23 @@ export async function userGameStats(
       ?.toString()
       .replace(/[<@>]/g, "") || interaction.user.id;
   const gameInfo = interaction.options.getString("game") as string;
-  const game = isNaN(parseInt(gameInfo)) ? gameInfo : parseInt(gameInfo);
 
   const gameList = await db.userGame.findMany({
     include: { game: true },
     where: { userId: userId },
   });
 
-  if (isNumberObject(game)) {
-    gameList.forEach((val) => {
-      if (val.gameId === game) {
-        return interaction.reply(
-          `<@${userId}> has ${convertToReadableTime(val.time)} in ${
-            val.game.name
-          }`
-        );
-      }
-    });
-  } else {
-    gameList.forEach((val) => {
-      if (val.game.name === game) {
-        return interaction.reply(
-          `<@${userId}> has ${convertToReadableTime(val.time)} in ${
-            val.game.name
-          }`
-        );
-      }
-    });
-  }
+  gameList.forEach((val) => {
+    if (val.game.name === gameInfo) {
+      return interaction.reply(
+        `<@${userId}> has ${convertToReadableTime(val.time)} in ${
+          val.game.name
+        }`
+      );
+    }
+  });
 
   return interaction.reply(
-    `Could not find <@${userId}>'s playtime for ${game} in our database.\nCheck your spelling and try again?`
+    `Could not find <@${userId}>'s playtime for ${gameInfo} in our database.\nCheck your spelling and try again?`
   );
 }
