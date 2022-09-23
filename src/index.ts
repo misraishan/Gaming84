@@ -97,7 +97,6 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
       if (recentUsers.includes(newPresence.userId)) return;
       recentUsers.push(newPresence.userId)
-      // console.log(recentUsers)
       setTimeout(5000, () => {
         recentUsers.splice(0,1);
       })
@@ -131,9 +130,8 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
       });
 
       const time = getTime(userGame?.time, activity);
-      // console.log(`${newPresence.user?.username} played ${game.name} for ${convertToReadableTime(time as string)}`)
 
-      const gameTime = await db.userGame.upsert({
+      await db.userGame.upsert({
         where: {
           id: userGame?.id || -1,
         },
@@ -148,17 +146,18 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
           user: {
             update: {
               lastPlayedGame: game.name,
-              lastPlayedTime: userGame?.time,
+              lastPlayedTime: getLastPlayedTime(activity.createdTimestamp),
             }
           }
         },
       })
-
-      // console.log("added to db....\n\n\n")
-      // console.log(convertToReadableTime(gameTime.time))
     }
   }
 });
+
+function getLastPlayedTime(startTime : number) {
+  return (Date.now() - startTime).toString()
+}
 
 function getTime(oldTime: string | undefined | number, activity: Activity) {
   if (activity.createdTimestamp) {

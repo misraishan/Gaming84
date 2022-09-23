@@ -16,7 +16,6 @@ model User {
   isOptedIn Boolean   @default(true)
   lastPlayedGame String?
   lastPlayedTime String?
-  lastUpdatedTime Int @default(0)
 }
 
 model Game {

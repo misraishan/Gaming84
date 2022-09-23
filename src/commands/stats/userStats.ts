@@ -46,8 +46,9 @@ export async function statsHandler(
           TimestampStyles.ShortDateTime
         )}`
       )
-      .setDescription(`Last played ${user?.lastPlayedGame} for ${convertToReadableTime(user?.lastPlayedTime as string)}`)
       .setImage(`attachment://image.png`);
+
+    if (user?.lastPlayedGame) embed.addFields({name: `Last played ${user?.lastPlayedGame}`, value: `for ${convertToReadableTime(user?.lastPlayedTime as string)}`})
 
     gameList.forEach((val, idx) => {
       if (idx === 23) {
