@@ -3,8 +3,10 @@
 import { PrismaClient } from "@prisma/client";
 import { Activity, Client, GatewayIntentBits } from "discord.js";
 import { config } from "dotenv";
+import { setTimeout } from "timers/promises";
 import { optIn } from "./commands/optin";
 import { optout } from "./commands/optout";
+import { convertToReadableTime } from "./commands/stats/convertTime";
 import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
@@ -64,7 +66,7 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-
+const recentUsers : string[] = [];
 // Presence listener, can't be in seperate file just bc??? :(
 client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (oldPresence?.user?.bot) return;
@@ -75,8 +77,8 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (!activities) return;
 
   const user = await db.user.findFirst({ where: { id: oldPresence.userId } });
-  if (user !== null && !user?.isOptedIn) return;
-  const activityList: string[] = [];
+  if (user != null && !user?.isOptedIn) return;
+  const activityList : string[] = [];
 
   for (const activity of activities) {
     if (activity.type === 0) {
@@ -93,33 +95,21 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
       if (activityList.includes(activity.name)) continue;
       else activityList.push(activity.name);
 
-      let game;
+      if (recentUsers.includes(newPresence.userId)) return;
+      recentUsers.push(newPresence.userId)
+      // console.log(recentUsers)
+      setTimeout(5000, () => {
+        recentUsers.splice(0,1);
+      })
 
-      if (activity.applicationId != null) {
-        game = await db.game.findFirst({
-          where: { appId: activity.applicationId },
+      let game = await db.game.findFirst({ where: { name: activity.name } });
+      if (!game) {
+        game = await db.game.create({
+          data: {
+            name: activity.name,
+          },
         });
-        if (!game) {
-          game = await db.game.create({
-            data: {
-              name: activity.name,
-              appId: activity.applicationId,
-            },
-          });
-        }
-      } else {
-        // TODO: Migrate game if another of the same name has an id.
-        game = await db.game.findFirst({ where: { name: activity.name } });
-        if (!game) {
-          game = await db.game.create({
-            data: {
-              name: activity.name,
-            },
-          });
-        }
       }
-
-      if (!game) return;
 
       await db.user.upsert({
         where: {
@@ -141,11 +131,13 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
       });
 
       const time = getTime(userGame?.time, activity);
+      // console.log(`${newPresence.user?.username} played ${game.name} for ${convertToReadableTime(time as string)}`)
 
-      await db.userGame.upsert({
+      const gameTime = await db.userGame.upsert({
         where: {
           id: userGame?.id || -1,
         },
+        include: {user: true},
         create: {
           gameId: game.id,
           time: time,
@@ -153,8 +145,17 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
         },
         update: {
           time: time,
+          user: {
+            update: {
+              lastPlayedGame: game.name,
+              lastPlayedTime: userGame?.time,
+            }
+          }
         },
-      });
+      })
+
+      // console.log("added to db....\n\n\n")
+      // console.log(convertToReadableTime(gameTime.time))
     }
   }
 });

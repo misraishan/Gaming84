@@ -14,11 +14,13 @@ model User {
   id       String     @id @unique
   UserGame UserGame[]
   isOptedIn Boolean   @default(true)
+  lastPlayedGame String?
+  lastPlayedTime String?
+  lastUpdatedTime Int @default(0)
 }
 
 model Game {
   id       Int        @id @default(autoincrement())
-  appId    String?
   name     String
   UserGame UserGame[]
 }
