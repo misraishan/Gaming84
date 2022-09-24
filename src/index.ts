@@ -20,24 +20,24 @@ export const client = new Client({
 export const db = new PrismaClient();
 client.login(token);
 
-const botPresence = {name: `games on ${client.guilds.cache.size} servers`, type: 1, url: "https://hayhay.dev/"};
+const botPresence = () => {return {name: `games on ${client.guilds.cache.size} servers`, type: 1, url: "https://hayhay.dev/"}};
 
 client.once("ready", () => {
   console.log("Ready!");
   client.user?.setPresence({
-    activities: [botPresence]
+    activities: [botPresence()]
   });
 });
 
 client.on("guildCreate", () => {
   client.user?.setPresence({
-    activities: [botPresence]
+    activities: [botPresence()]
   });
 });
 
 client.on("guildDelete", () => {
   client.user?.setPresence({
-    activities: [botPresence]
+    activities: [botPresence()]
   });
 });
 
