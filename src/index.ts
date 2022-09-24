@@ -3,7 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Activity, Client, GatewayIntentBits, Presence } from "discord.js";
 import { config } from "dotenv";
-import { setTimeout } from "timers/promises";
+import { setTimeout } from "timers";
 import { optIn } from "./commands/optin";
 import { optout } from "./commands/optout";
 import { gameStats } from "./commands/stats/gameStats";
@@ -18,33 +18,35 @@ export const client = new Client({
 });
 
 export const db = new PrismaClient();
+client.login(token);
+
+const botPresence = {name: `games on ${client.guilds.cache.size} servers`, type: 1, url: "https://hayhay.dev/"};
 
 client.once("ready", () => {
   console.log("Ready!");
   client.user?.setPresence({
-    activities: [{name: `Tracking ${client.guilds.cache.size} servers`, type: 0, url: "https://hayhay.dev/"}]
-  })
+    activities: [botPresence]
+  });
 });
 
 client.on("guildCreate", () => {
   client.user?.setPresence({
-    activities: [{name: `Tracking ${client.guilds.cache.size} servers`, type: 0, url: "https://hayhay.dev/"}]
-  })
-})
+    activities: [botPresence]
+  });
+});
 
 client.on("guildDelete", () => {
   client.user?.setPresence({
-    activities: [{name: `Tracking ${client.guilds.cache.size} servers`, type: 0, url: "https://hayhay.dev/"}]
-  })
-})
-
-client.login(token);
+    activities: [botPresence]
+  });
+});
 
 // Command handler
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = interaction.commandName;
+  const opts = interaction.options;
 
   // Ping command
   if (command === "ping") {
@@ -54,11 +56,11 @@ client.on("interactionCreate", async (interaction) => {
   // Stats command
   if (
     command === "stats" &&
-    interaction.options.getString("game") &&
-    interaction.options.getMentionable("user")
+    opts.getString("game") &&
+    opts.getMentionable("user")
   )
     userGameStats(interaction);
-  else if (command === "stats" && interaction.options.getString("game"))
+  else if (command === "stats" && opts.getString("game") && !opts.getString("user"))
     gameStats(interaction);
   else if (command === "stats") statsHandler(interaction);
 
@@ -72,7 +74,7 @@ client.on('interactionCreate', async interaction => {
 
 	if (interaction.commandName === 'stats') {
 		const focusedValue = interaction.options.getFocused();
-		const choices = await db.game.findMany({take: 25});
+		const choices = await db.game.findMany({where: {name: {startsWith: focusedValue}}, take: 25});
 		const filtered = choices.filter(choice => choice.name.startsWith(focusedValue));
 		await interaction.respond(
 			filtered.map(choice => ({ name: choice.name, value: choice.name })),
@@ -80,11 +82,10 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-const recentUsers : string[] = [];
+const recentUsers : Set<string> = new Set();
 // Presence listener, can't be in seperate file just bc??? :(
 client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (oldPresence?.user?.bot) return;
-  if (newPresence == null) return;
   const newActivites = newPresence?.activities;
   const activities = oldPresence?.activities;
 
@@ -92,28 +93,14 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
   const user = await db.user.findFirst({ where: { id: oldPresence.userId } });
   if (user != null && !user?.isOptedIn) return;
-  const activityList : string[] = [];
 
   for (const activity of activities) {
     if (activity.type === 0) {
-      let isPresent: Boolean = false;
-      for (const newAct of newActivites) {
-        if (newAct.equals(activity)) {
-          isPresent = true;
-          return;
-        }
-      }
-
-      if (isPresent) continue;
-
-      if (activityList.includes(activity.name)) continue;
-      else activityList.push(activity.name);
-
-      if (recentUsers.includes(newPresence.userId)) return;
-      recentUsers.push(newPresence.userId)
-      setTimeout(5000, () => {
-        recentUsers.splice(0,1);
-      })
+      if (recentUsers.has(newPresence.userId)) return;
+      recentUsers.add(newPresence.userId)
+      setTimeout(() => {
+        recentUsers.delete(newPresence.userId);
+      }, 5000)
 
       let game = await db.game.findFirst({ where: { name: activity.name } });
       if (!game) {
@@ -124,19 +111,14 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
         });
       }
 
-      await db.user.upsert({
-        where: {
-          id: newPresence.userId,
-        },
-        create: {
-          id: newPresence.userId,
-        },
-        update: {},
-      });
+      let user = await db.user.findFirst({where: {id: oldPresence.userId}})
+      if (!user) {
+        user = await db.user.create({data: {id: oldPresence.userId}})
+      }
 
       const userGame = await db.userGame.findFirst({
         where: {
-          userId: newPresence.userId,
+          userId: oldPresence.userId,
           AND: {
             gameId: game?.id,
           },
@@ -147,24 +129,27 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
       await db.userGame.upsert({
         where: {
-          id: userGame?.id,
+          id: userGame?.id || -1,
         },
-        include: {user: true},
         create: {
           gameId: game.id,
           time: time,
-          userId: newPresence.userId,
+          userId: user?.id,
         },
         update: {
           time: time,
-          user: {
-            update: {
-              lastPlayedGame: game.name,
-              lastPlayedTime: getLastPlayedTime(activity.createdTimestamp),
-            }
-          }
         },
-      })
+      });
+
+      await db.user.update({
+        where: {
+          id: user.id
+        },
+        data: {
+          lastPlayedGame: game.name,
+          lastPlayedTime: getLastPlayedTime(activity.createdTimestamp),
+        }
+      });
     }
   }
 });

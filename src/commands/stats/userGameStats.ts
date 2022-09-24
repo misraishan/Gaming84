@@ -19,8 +19,10 @@ export async function userGameStats(
     where: { userId: userId },
   });
 
+  let validGame = false;
   gameList.forEach((val) => {
     if (val.game.name === gameInfo) {
+      validGame = true;
       return interaction.reply(
         `<@${userId}> has ${convertToReadableTime(val.time)} in ${
           val.game.name
@@ -28,6 +30,8 @@ export async function userGameStats(
       );
     }
   });
+
+  if (validGame) return;
 
   return interaction.reply(
     `Could not find <@${userId}>'s playtime for ${gameInfo} in our database.\nCheck your spelling and try again?`
