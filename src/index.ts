@@ -6,6 +6,7 @@ import { config } from "dotenv";
 import { setTimeout } from "timers";
 import { optIn } from "./commands/optin";
 import { optout } from "./commands/optout";
+import { convertToReadableTime } from "./commands/stats/convertTime";
 import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
@@ -96,11 +97,24 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
   for (const activity of activities) {
     if (activity.type === 0) {
-      if (recentUsers.has(newPresence.userId)) return;
-      recentUsers.add(newPresence.userId)
+      if (recentUsers.has(oldPresence.userId)) return;
+      recentUsers.add(oldPresence.userId)
       setTimeout(() => {
-        recentUsers.delete(newPresence.userId);
+        recentUsers.delete(oldPresence.userId);
       }, 5000)
+
+      let isPresent = false;
+      for (const newActivity of newActivites) {
+        if (newActivity.name === activity.name) {isPresent = true; break;}
+      }
+
+      if (isPresent) continue;
+
+      /*console.log(`User ${oldPresence.user?.username} 
+      played ${activity.name} 
+      since ${Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'long' }).format(activity.createdTimestamp)} 
+      till ${Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'long' }).format(Date.now())} 
+      uID ${oldPresence.userId}`)*/
 
       let game = await db.game.findFirst({ where: { name: activity.name } });
       if (!game) {
@@ -125,9 +139,11 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
         },
       });
 
+      // if (userGame) console.log(`Old time: ${convertToReadableTime(userGame?.time)}`)
       const time = getTime(userGame?.time, activity);
+      // console.log(convertToReadableTime(time as string))
 
-      await db.userGame.upsert({
+      const newUserGame = await db.userGame.upsert({
         where: {
           id: userGame?.id || -1,
         },
@@ -140,6 +156,10 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
           time: time,
         },
       });
+
+      /*console.log("uID: " + newUserGame?.userId 
+      + " new time: " + convertToReadableTime(newUserGame?.time as string) 
+      + " gameID: " + newUserGame?.gameId + "\n\n")*/
 
       await db.user.update({
         where: {

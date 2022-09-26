@@ -50,7 +50,7 @@ export async function optout(
   await interaction
     .reply({
       content:
-        "We only store the games you play and the time spent on it, no other data (such as statuses, streaming, music, etc) is stores." +
+        "We only store the games you play and the time spent on it, no other data (such as statuses, streaming, music, etc) is stored." +
         "\n\nStill want to continue (all data will be erased)?",
       components: [btns],
       ephemeral: true,
