@@ -1,19 +1,12 @@
-import formatDuration from "format-duration";
+import { duration } from "moment";
 
 export function convertToReadableTime(time: string) {
   const ms = parseInt(time);
-  const formattedTime = formatDuration(ms);
-
-  switch (formattedTime.split(":").length) {
-    case 2:
-      return formattedTime + " min";
-    case 3:
-      return formattedTime + " hrs";
-    case 4:
-      return formattedTime + " days";
-    default:
-      break;
-  }
-
-  return formattedTime;
+  const dur = duration(ms, "milliseconds")
+  let timeString = "";
+  if (dur.days() !== 0) timeString += dur.days() + "d ";
+  if (timeString.includes("d") || dur.hours() !== 0) timeString += dur.hours() + "h ";
+  if (timeString.includes("h") || dur.minutes() !== 0) timeString += dur.minutes() + "m ";
+  if (timeString.includes("m") || dur.seconds() !== 0) timeString += dur.seconds() + "s ";
+  return timeString;
 }

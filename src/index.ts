@@ -83,7 +83,7 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-const recentUsers : Set<string> = new Set();
+const recentUsers : Map<string, Array<string>> = new Map();
 // Presence listener, can't be in seperate file just bc??? :(
 client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (oldPresence?.user?.bot) return;
@@ -96,9 +96,9 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (user != null && !user?.isOptedIn) return;
 
   for (const activity of activities) {
-    if (activity.type === 0) {
-      if (recentUsers.has(oldPresence.userId)) return;
-      recentUsers.add(oldPresence.userId)
+    if (activity.type === 0 && activity.name != "Medal") {
+      if (recentUsers.get(oldPresence.userId)?.filter((name) => name === activity.name)) continue;
+      recentUsers.set(oldPresence.userId, [activity.name].concat(recentUsers.get(oldPresence.userId)??[]))
       setTimeout(() => {
         recentUsers.delete(oldPresence.userId);
       }, 5000)
