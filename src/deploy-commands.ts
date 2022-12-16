@@ -1,20 +1,15 @@
 import {
   Routes,
-  SlashCommandBuilder,
-  SlashCommandMentionableOption,
-  SlashCommandStringOption,
-  SlashCommandSubcommandBuilder,
+  SlashCommandBuilder
 } from "discord.js";
 import { REST } from "@discordjs/rest";
 import { config } from "dotenv";
-import path from "path";
 
 const commands = [
   new SlashCommandBuilder()
     .setName("stats")
     .setDescription(
-      "Gives you options for viewing statistics in various scenarios."
-    )
+      "Gives you options for viewing statistics in various scenarios.")
     .addMentionableOption((opt) => {
       return opt
         .setName("user")
@@ -34,8 +29,18 @@ const commands = [
   new SlashCommandBuilder()
     .setName("optin")
     .setDescription(
-      "Gives users the ability to opt in if previously opted out."
-    ),
+      "Gives users the ability to opt in if previously opted out."),
+  new SlashCommandBuilder()
+    .setName("reset")
+    .setDescription("Allows you to reset your entire game history.")
+    .addStringOption((opt) => {
+      return opt
+        .setName("game")
+        .setDescription("Reset history of a specific game.")
+        .setRequired(false)
+        .setAutocomplete(true);
+    }),
+      
 ];
 
 config({ path: "./.env" });

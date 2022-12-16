@@ -10,6 +10,7 @@ import { convertToReadableTime } from "./commands/stats/convertTime";
 import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
+import { reset } from "./reset/reset";
 
 config({ path: "../.env" });
 
@@ -49,11 +50,6 @@ client.on("interactionCreate", async (interaction) => {
   const command = interaction.commandName;
   const opts = interaction.options;
 
-  // Ping command
-  if (command === "ping") {
-    await interaction.reply("Pong!");
-  }
-
   // Stats command
   if (
     command === "stats" &&
@@ -65,6 +61,9 @@ client.on("interactionCreate", async (interaction) => {
     gameStats(interaction);
   else if (command === "stats") statsHandler(interaction);
 
+  // Reset history
+  if (command === "reset") reset(interaction, opts.getString("game"))
+
   // Opt in/opt out manager
   if (command === "optout") optout(interaction);
   if (command === "optin") optIn(interaction);
@@ -73,7 +72,7 @@ client.on("interactionCreate", async (interaction) => {
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isAutocomplete()) return;
 
-	if (interaction.commandName === 'stats') {
+	if (interaction.commandName === 'stats' || interaction.commandName === "reset") {
 		const focusedValue = interaction.options.getFocused();
 		const choices = await db.game.findMany({where: {name: {startsWith: focusedValue}}, take: 25});
 		const filtered = choices.filter(choice => choice.name.startsWith(focusedValue));
