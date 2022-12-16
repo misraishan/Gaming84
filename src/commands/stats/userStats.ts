@@ -5,8 +5,6 @@ import {
   AttachmentBuilder,
   time,
   TimestampStyles,
-  User,
-  CommandInteractionOptionResolver,
 } from "discord.js";
 import { client, db } from "../..";
 import { generateDonut } from "../../charts/userCharts";
@@ -50,17 +48,100 @@ export async function statsHandler(
 
     if (user?.lastPlayedGame) embed.addFields({name: `Last played ${user?.lastPlayedGame}`, value: `for ${convertToReadableTime(user?.lastPlayedTime as string)}`})
 
-    gameList.forEach((val, idx) => {
-      if (idx === 23) {
-        embed.addFields({name: "And more...", value: "Page 2 coming soon."})
-        return;
-      }
-      embed.addFields({
-        name: val.game.name,
-        value: convertToReadableTime(val.time),
-      });
+    embed.addFields(
+      gameList.map((val) => {
+        return { name: val.game.name, value: convertToReadableTime(val.time) };
+      })
+    );
+
+    const filter = (m: any) => m.author.id === interaction.user.id;
+    const message = await interaction.reply({
+      embeds: [embed],
+      files: [file],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 1,
+              label: "Show more",
+              custom_id: "show_more",
+            },
+          ],
+        },
+      ],
     });
 
-    await interaction.reply({ embeds: [embed], files: [file] });
+    const collector = message.createMessageComponentCollector({
+      filter,
+      time: 60000,
+    });
+
+    collector.on("collect", async (i) => {
+      if (i.customId === "show_more") {
+        const embed = new EmbedBuilder()
+
+          .setColor("Purple")
+          .setThumbnail(interactionUser.displayAvatarURL())
+          .setTitle(`Playtime breakdown`)
+          .setDescription(
+            `for <@${interactionUser.id}>, as of ${time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.ShortDateTime
+            )}`
+          )
+          .setImage(`attachment://image.png`);
+
+        if (user?.lastPlayedGame) embed.addFields({name: `Last played ${user?.lastPlayedGame}`, value: `for ${convertToReadableTime(user?.lastPlayedTime as string)}`})
+
+        embed.addFields(
+          gameList.map((val) => {
+            return {
+              name: val.game.name,
+              value: convertToReadableTime(val.time),
+            };
+          })
+        );
+
+        await i.update({
+          embeds: [embed],
+          files: [file],
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  style: 1,
+                  label: "Show less",
+                  custom_id: "show_less",
+                },
+              ],
+            },
+          ],
+        });
+      } else if (i.customId === "show_less") {
+        await i.update({
+          embeds: [embed],
+          files: [file],
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  style: 1,
+                  label: "Show more",
+                  custom_id: "show_more",
+                },
+              ],
+            },
+          ],
+        });
+      }
+    });
   }
+
+  return;
 }

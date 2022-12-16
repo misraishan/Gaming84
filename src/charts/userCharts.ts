@@ -24,9 +24,11 @@ function getData(labels: string[], data: string[]) {
 }
 
 export async function generateDonut(user: string) {
-  const gameList = await db.userGame.findMany({
+  let gameList = await db.userGame.findMany({
     where: { userId: user },
     include: { game: true },
+    orderBy: {game: {name: "asc"}},
+    take: 10
   });
 
   if (gameList[0].userId == undefined) throw Error("Not in db");
