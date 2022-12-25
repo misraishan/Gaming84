@@ -59,15 +59,5 @@ export async function reset(interaction: ChatInputCommandInteraction<CacheType>,
                 ]
             }
         ]})
-        // const filter = (i: any) => i.user.id === interaction.user.id;
-        // const collector = interaction.channel?.createMessageComponentCollector({ filter, time: 15000 });
-        // collector?.on('collect', async i => {
-        //     if (i.customId === 'yes') {
-        //         await db.userGame.deleteMany({where: {userId: user?.id}})
-        //         await i.update({content: `Successfully deleted all of your play history.`, components: []})
-        //     } else if (i.customId === 'no') {
-        //         await i.update({content: `Cancelled.`, components: []})
-        //     }
-        // });
     }
 }
