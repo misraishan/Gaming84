@@ -113,15 +113,15 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
   const newActivites = newPresence?.activities;
   const userId = newPresence.userId;
 
-  const user = await db.user.findFirst({ where: { id: userId } });
-
-  if (!user) await db.user.create({ data: { id: userId } });
-
-  if (!user?.isOptedIn) return;
-
   let activity = newActivites?.find(
     (activity) => activity.type === ActivityType.Playing
   );
+
+  const user = await db.user.findFirst({ where: { id: userId } });
+
+  if (user == null) await db.user.create({ data: { id: userId } });
+
+  if (!user?.isOptedIn) return;
 
   if (!activity) {
     if (recentUsers.has(userId)) {
@@ -151,11 +151,10 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
           );
         }
       }
-    }
+    } else return;
 
-    setTimeout(() => {
-      recentUsers.delete(userId);
-    }, 30000);
+    recentUsers.delete(userId);
+
     return;
   }
 
@@ -233,8 +232,6 @@ async function createUserGame(userId: string, gameId: number, time: number) {
     include: { user: true, game: true },
   });
 
-  userGame.user.lastPlayedGame = userGame.game.name;
-  userGame.user.lastPlayedTime = newTime;
   await db.user.update({
     where: { id: userId },
     data: { lastPlayedGame: userGame.game.name, lastPlayedTime: newTime },
