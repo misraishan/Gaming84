@@ -1,18 +1,11 @@
 // Discord bot url https://discord.com/api/oauth2/authorize?client_id=1017643869908774963&permissions=139586750528
 // &redirect_uri=http%3A%2F%2Flocalhost%3A3000&scope=bot%20applications.commands
 import { PrismaClient } from "@prisma/client";
-import {
-  Activity,
-  ActivityType,
-  Client,
-  GatewayIntentBits,
-  Presence,
-} from "discord.js";
+import { ActivityType, Client, GatewayIntentBits } from "discord.js";
 import { config } from "dotenv";
 import { setTimeout } from "timers";
 import { optIn } from "./commands/optin";
 import { optout } from "./commands/optout";
-import { convertToReadableTime } from "./commands/stats/convertTime";
 import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
@@ -216,12 +209,15 @@ async function updateUserGame(
   const userGame = await db.userGame.update({
     where: { id: userGameId },
     data: { time: newTime },
-    include: { user: true, game: true }
+    include: { user: true, game: true },
   });
 
   await db.user.update({
     where: { id: userGame.user.id },
-    data: { lastPlayedTime: (Date.now() - time).toString(), lastPlayedGame: userGame.game.name },
+    data: {
+      lastPlayedTime: (Date.now() - time).toString(),
+      lastPlayedGame: userGame.game.name,
+    },
   });
 }
 
@@ -234,7 +230,7 @@ async function createUserGame(userId: string, gameId: number, time: number) {
       gameId,
       time: newTime,
     },
-    include: { user: true, game: true }
+    include: { user: true, game: true },
   });
 
   userGame.user.lastPlayedGame = userGame.game.name;

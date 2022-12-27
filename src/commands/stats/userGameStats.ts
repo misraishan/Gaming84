@@ -1,6 +1,4 @@
-import { Game, UserGame } from "@prisma/client";
 import { ChatInputCommandInteraction, CacheType } from "discord.js";
-import { isNumberObject } from "util/types";
 import { db } from "../..";
 import { convertToReadableTime } from "./convertTime";
 
