@@ -108,6 +108,8 @@ const recentUsers: Map<
   }
 > = new Map();
 
+const uniqueUsers: Set<string> = new Set();
+
 client.on("presenceUpdate", async (oldPresence, newPresence) => {
   if (oldPresence?.user?.bot) return;
   const newActivites = newPresence?.activities;
@@ -116,6 +118,12 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
   let activity = newActivites?.find(
     (activity) => activity.type === ActivityType.Playing
   );
+
+  if (uniqueUsers.has(userId)) return;
+  uniqueUsers.add(userId);
+  setTimeout(() => {
+    uniqueUsers.delete(userId);
+  }, 5000);
 
   const user = await db.user.findFirst({ where: { id: userId } });
 
