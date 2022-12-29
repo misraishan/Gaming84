@@ -10,6 +10,20 @@ import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
 import { reset } from "./reset/reset";
+import { dbApi } from "./api/dbApi";
+import express from "express";
+import cors from "cors";
+
+const app = express();
+const port = process.env.PORT || 3000;
+app.use(cors());
+
+
+dbApi(app);
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});
 
 config({ path: "../.env" });
 
