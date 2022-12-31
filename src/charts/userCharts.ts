@@ -27,6 +27,7 @@ export async function generateDonut(user: string) {
   let gameList = await db.userGame.findMany({
     where: { userId: user },
     include: { game: true },
+    orderBy: { time: "desc" },
   });
 
   if (gameList[0].userId == undefined) throw Error("Not in db");
@@ -34,40 +35,31 @@ export async function generateDonut(user: string) {
   const labels: string[] = [];
   const data: string[] = [];
 
-  for (let i = 0; i < gameList.length; i++) {
-    for (let j = i + 1; j < gameList.length; j++) {
-      if (parseInt(gameList[i].time) < parseInt(gameList[j].time)) {
-        const temp = gameList[i];
-        gameList[i] = gameList[j];
-        gameList[j] = temp;
-      }
-    }
-  }
-
   let otherTime = 0;
   if (gameList.length > 10) {
     const otherGames = gameList.slice(10);
     gameList = gameList.slice(0, 10);
 
     otherGames.forEach((game) => {
-      otherTime += parseInt(game.time);
+      otherTime += game.time;
     });
 
     gameList.push({
       id: -1,
-      time: otherTime.toString(),
+      time: otherTime,
       game: {
         id: -1,
         name: "Other",
       },
       userId: "",
-      gameId: -1
+      gameId: -1,
+      times: null
     });
   }
 
   gameList.forEach((game) => {
     labels.push(game.game.name);
-    data.push(game.time);
+    data.push(game.time.toString());
   });
 
   const config : any = {

@@ -6,23 +6,18 @@ export async function gameStats(
   interaction: ChatInputCommandInteraction<CacheType>
 ) {
   const gameInfo = interaction.options.getString("game") as string;
-  let gameDb;
+  const game = await db.game.findFirst({ where: { name: gameInfo } });
 
-  gameDb = await db.game.findFirst({
-    where: { name: gameInfo },
-    include: { UserGame: true },
-  });
+  if (!game) return interaction.reply("Not a valid game in our database.");
 
-  if (!gameDb) return interaction.reply("Not a valid game in our database.");
-
-  let timePlayed = 0;
-  gameDb.UserGame.forEach((value) => {
-    timePlayed += parseInt(value.time);
+  const gameDb = await db.userGame.aggregate({
+    where: { gameId: game.id },
+    _sum: { time: true },
   });
 
   return interaction.reply(
-    `Total time played on ${gameDb.name} is ${convertToReadableTime(
-      timePlayed.toString()
+    `Total time played on ${game.name} is ${convertToReadableTime(
+      gameDb._sum.time || 0
     )}`
   );
 }

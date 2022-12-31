@@ -46,7 +46,7 @@ export async function statsHandler(
       )
       .setImage(`attachment://image.png`);
 
-    if (user?.lastPlayedGame) embed.addFields({name: `Last played ${user?.lastPlayedGame}`, value: `for ${convertToReadableTime(user?.lastPlayedTime as string)}`})
+    if (user?.lastPlayedGame) embed.addFields({name: `Last played ${user?.lastPlayedGame}`, value: `for ${convertToReadableTime(user?.lastPlayedTime || 0)}`});
 
     embed.addFields(
       gameList.map((val) => {

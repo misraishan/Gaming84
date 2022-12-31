@@ -17,12 +17,10 @@ import cors from "cors";
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(cors());
-
-
 dbApi(app);
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`DB Api listening at http://localhost:${port}.`);
 });
 
 config({ path: "../.env" });
@@ -44,7 +42,7 @@ const botPresence = () => {
 };
 
 client.once("ready", () => {
-  console.log("Ready!");
+  console.log("Ready at time " + Date.now() + "!");
   client.user?.setPresence({
     activities: [botPresence()],
   });
@@ -113,7 +111,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-const recentUsers: Map<
+export const recentUsers: Map<
   string,
   {
     name: string;
@@ -220,12 +218,13 @@ async function createGame(name: string) {
   const game = await db.game.create({ data: { name } });
   return game;
 }
+
 async function updateUserGame(
   userGameId: number,
-  originalTime: string,
+  originalTime: number,
   time: number
 ) {
-  const newTime = (parseInt(originalTime) + Date.now() - time).toString();
+  const newTime = ((originalTime + Math.floor((Date.now() - time) / 1000)));
 
   const userGame = await db.userGame.update({
     where: { id: userGameId },
@@ -236,14 +235,14 @@ async function updateUserGame(
   await db.user.update({
     where: { id: userGame.user.id },
     data: {
-      lastPlayedTime: (Date.now() - time).toString(),
+      lastPlayedTime: Math.floor((Date.now() - time) / 1000),
       lastPlayedGame: userGame.game.name,
     },
   });
 }
 
 async function createUserGame(userId: string, gameId: number, time: number) {
-  const newTime = (Date.now() - time).toString();
+  const newTime = Math.floor((Date.now() - time) / 1000);
 
   const userGame = await db.userGame.create({
     data: {

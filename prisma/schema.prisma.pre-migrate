@@ -15,7 +15,7 @@ model User {
   UserGame       UserGame[]
   isOptedIn      Boolean    @default(true)
   lastPlayedGame String?
-  lastPlayedTime Int?
+  lastPlayedTime String?
 }
 
 model Game {
@@ -30,6 +30,6 @@ model UserGame {
   userId String
   game   Game   @relation(fields: [gameId], references: [id])
   gameId Int
-  time   Int    @default(0)
-  times  Int?    @default(0)
+  time   String    @default("0")
+  times  Int    @default(0)
 }
