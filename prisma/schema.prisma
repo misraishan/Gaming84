@@ -31,5 +31,4 @@ model UserGame {
   game   Game   @relation(fields: [gameId], references: [id])
   gameId Int
   time   Int    @default(0)
-  times  Int?    @default(0)
 }

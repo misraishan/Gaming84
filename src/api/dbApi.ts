@@ -48,6 +48,8 @@ export function dbApi(app: Express) {
     const games = await db.userGame.findMany({
       where: { userId: req.params.userid },
       include: { game: true },
+      orderBy: { time: "desc" },
+      take: 10,
     });
     res.send([...games]);
   });

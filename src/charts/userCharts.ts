@@ -52,8 +52,7 @@ export async function generateDonut(user: string) {
         name: "Other",
       },
       userId: "",
-      gameId: -1,
-      times: null
+      gameId: -1
     });
   }
 
