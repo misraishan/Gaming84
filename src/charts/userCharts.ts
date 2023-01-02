@@ -36,9 +36,9 @@ export async function generateDonut(user: string) {
   const data: string[] = [];
 
   let otherTime = 0;
-  if (gameList.length > 10) {
-    const otherGames = gameList.slice(10);
-    gameList = gameList.slice(0, 10);
+  if (gameList.length > 9) {
+    const otherGames = gameList.slice(8);
+    gameList = gameList.slice(0, 8);
 
     otherGames.forEach((game) => {
       otherTime += game.time;
