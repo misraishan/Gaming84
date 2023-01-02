@@ -13,6 +13,14 @@ import { reset } from "./reset/reset";
 import { dbApi } from "./api/dbApi";
 import express from "express";
 import cors from "cors";
+import { createClient } from "@supabase/supabase-js";
+import {
+  updateUserGame,
+  createUserGame,
+  createGame,
+} from "./dbHelpers/helpers";
+
+config({ path: "../.env" });
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,7 +31,10 @@ app.listen(port, () => {
   console.log(`DB Api listening at http://localhost:${port}.`);
 });
 
-config({ path: "../.env" });
+export const supabase = createClient(
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_SERVICE_KEY as string
+);
 
 const token = process.env.TOKEN;
 export const client = new Client({
@@ -153,7 +164,8 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
         await updateUserGame(
           userGame.id,
           userGame.time,
-          recentUsers.get(userId)!.time
+          recentUsers.get(userId)!.time,
+          userGame.userId
         );
       } else {
         const game = await db.game.findFirst({
@@ -194,7 +206,12 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
         where: { userId: userId, gameId: game?.id },
       });
       if (userGame) {
-        await updateUserGame(userGame.id, userGame.time, currentUser.time);
+        await updateUserGame(
+          userGame.id,
+          userGame.time,
+          currentUser.time,
+          userId
+        );
       } else {
         await createUserGame(userId, game.id, currentUser.time);
       }
@@ -213,49 +230,3 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
     });
   }
 });
-
-async function createGame(name: string) {
-  const game = await db.game.create({ data: { name } });
-  return game;
-}
-
-async function updateUserGame(
-  userGameId: number,
-  originalTime: number,
-  time: number
-) {
-  const newTime = ((originalTime + Math.floor((Date.now() - time) / 1000)));
-
-  const userGame = await db.userGame.update({
-    where: { id: userGameId },
-    data: { time: newTime },
-    include: { user: true, game: true },
-  });
-
-  await db.user.update({
-    where: { id: userGame.user.id },
-    data: {
-      lastPlayedTime: Math.floor((Date.now() - time) / 1000),
-      lastPlayedGame: userGame.game.name,
-    },
-  });
-}
-
-async function createUserGame(userId: string, gameId: number, time: number) {
-  const newTime = Math.floor((Date.now() - time) / 1000);
-
-  const userGame = await db.userGame.create({
-    data: {
-      userId,
-      gameId,
-      time: newTime,
-    },
-    include: { user: true, game: true },
-  });
-
-  await db.user.update({
-    where: { id: userId },
-    data: { lastPlayedGame: userGame.game.name, lastPlayedTime: newTime },
-  });
-  return userGame;
-}
