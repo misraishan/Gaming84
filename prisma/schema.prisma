@@ -16,6 +16,7 @@ model User {
   isOptedIn      Boolean    @default(true)
   lastPlayedGame String?
   lastPlayedTime Int?
+  updatedAt      DateTime   @updatedAt
 }
 
 model Game {
