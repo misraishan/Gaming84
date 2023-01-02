@@ -4,12 +4,18 @@ import { randomInt } from "crypto";
 import { Chart } from "chart.js";
 
 function getData(labels: string[], data: string[]) {
-  const randColors = [];
-  for (let i = 0; i < labels.length; i++) {
-    randColors.push(
-      `rgb(${randomInt(256)}, ${randomInt(256)}, ${randomInt(256)})`
-    );
-  }
+  const randColors = [
+    "#5856d6",
+    "#5ac8fa",
+    "#ffcc00",
+    "#78d237",
+    "#007aff",
+    "#22924f",
+    "#9b59b6",
+    "#ff9500",
+    "#ff2d55",
+  ].slice(0, data.length);
+
   return {
     labels,
     datasets: [
@@ -52,7 +58,7 @@ export async function generateDonut(user: string) {
         name: "Other",
       },
       userId: "",
-      gameId: -1
+      gameId: -1,
     });
   }
 
@@ -61,8 +67,8 @@ export async function generateDonut(user: string) {
     data.push(game.time.toString());
   });
 
-  const config : any = {
-    type: "doughnut",
+  const config: any = {
+    type: "pie",
     data: getData(labels, data),
     options: {
       devicePixelRatio: 1,
@@ -74,7 +80,7 @@ export async function generateDonut(user: string) {
 
   const width = 400;
   const height = 400;
-  Chart.defaults.color = "White"
+  Chart.defaults.color = "#fff";
   const backgroundColour = "#2F3037";
   const chart = new ChartJSNodeCanvas({ width, height, backgroundColour });
 
