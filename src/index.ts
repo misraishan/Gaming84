@@ -10,10 +10,10 @@ import { gameStats } from "./commands/stats/gameStats";
 import { userGameStats } from "./commands/stats/userGameStats";
 import { statsHandler } from "./commands/stats/userStats";
 import { reset } from "./reset/reset";
-import { dbApi } from "./api/dbApi";
+import { dbAPI } from "./api/dbAPI";
 import express from "express";
+import { Client as appwriteClient, Databases, Storage } from "node-appwrite";
 import cors from "cors";
-import { createClient } from "@supabase/supabase-js";
 import {
   updateUserGame,
   createUserGame,
@@ -25,16 +25,25 @@ config({ path: "../.env" });
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(cors());
-dbApi(app);
+dbAPI(app);
 
 app.listen(port, () => {
   console.log(`DB Api listening at http://localhost:${port}.`);
 });
 
-export const supabase = createClient(
-  process.env.SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_KEY as string
-);
+const appwrite = new appwriteClient();
+appwrite
+  .setEndpoint(process.env.APPWRITE_ENDPOINT!)
+  .setProject(process.env.APPWRITE_PROJECT_ID!)
+  .setKey(process.env.APPWRITE_API_KEY!);
+
+export const appwriteDB = new Databases(appwrite);
+export const appwriteStore = new Storage(appwrite);
+
+// export const supabase = createClient(
+//   process.env.SUPABASE_URL as string,
+//   process.env.SUPABASE_SERVICE_KEY as string
+// );
 
 const token = process.env.TOKEN;
 export const client = new Client({

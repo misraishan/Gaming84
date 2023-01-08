@@ -1,7 +1,8 @@
 import { Express } from "express";
 import { db, recentUsers } from "..";
+import storageAPI from "./appwriteStore";
 
-export function dbApi(app: Express) {
+export function dbAPI(app: Express) {
   app.get("/api/", async (req, res) => {
     res.send({ Hello: "World!" });
   });
@@ -59,5 +60,14 @@ export function dbApi(app: Express) {
       where: { userId: req.params.userid, gameId: parseInt(req.params.gameid) },
     });
     res.send(game);
+  });
+
+  app.get("/api/users/:userid/recap/:date", async (req, res) => {
+    const { userid, date } = req.params;
+    const recapInfo = await storageAPI.readMonthlyRecap(
+      date,
+      `${req.params.userid}-${date}.json`
+    );
+    res.send(recapInfo);
   });
 }

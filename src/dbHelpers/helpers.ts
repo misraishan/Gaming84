@@ -1,5 +1,5 @@
 import { db } from "..";
-import storageAPI from "../api/supabaseStore";
+import storageAPI from "../api/appwriteStore";
 
 export async function createGame(name: string) {
   const game = await db.game.create({ data: { name } });
@@ -28,12 +28,21 @@ export async function updateUserGame(
       include: { game: true },
     });
 
-    await storageAPI.uploadMonthlyJson(
+    const bucketID = `${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}`;
+    const fileName = `${user.id}-${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}.json`;
+
+    await storageAPI.uploadMonthlyUpdate(
+      bucketID,
+      fileName,
       JSON.stringify(games),
-      `${user.id}/${user.updatedAt.getFullYear()}/${
-        user.updatedAt.getMonth() + 1
-      }/recap.json`
     );
+
+    // await storageAPI.uploadMonthlyJson(
+    //   JSON.stringify(games),
+    //   `${user.id}/${user.updatedAt.getFullYear()}/${
+    //     user.updatedAt.getMonth() + 1
+    //   }/recap.json`
+    // );
 
     const originalGame = await db.userGame.findFirst({
       where: { id: userGameId },
@@ -89,12 +98,21 @@ export async function createUserGame(
       include: { game: true },
     });
 
-    await storageAPI.uploadMonthlyJson(
+    const bucketID = `${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}`;
+    const fileName = `${user.id}-${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}.json`;
+
+    await storageAPI.uploadMonthlyUpdate(
+      bucketID,
+      fileName,
       JSON.stringify(games),
-      `${user.id}/${user.updatedAt.getFullYear()}/${
-        user.updatedAt.getMonth() + 1
-      }/recap.json`
     );
+
+    // await storageAPI.uploadMonthlyJson(
+    //   JSON.stringify(games),
+    //   `${user.id}/${user.updatedAt.getFullYear()}/${
+    //     user.updatedAt.getMonth() + 1
+    //   }/recap.json`
+    // );
 
     await db.userGame.deleteMany({ where: { userId } });
   }
