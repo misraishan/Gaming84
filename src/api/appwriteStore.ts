@@ -1,4 +1,3 @@
-// import { supabase } from "..";
 import { appwriteStore } from "..";
 import fs from "node:fs/promises";
 import { unlinkSync } from "node:fs";
@@ -22,15 +21,14 @@ export default class storageAPI {
   ) {
     try {
       await appwriteStore.getBucket(bucketID);
-    } catch (error) {
-      this.createBucket(bucketID);
+    } catch (error: any) {
+      if (error["code"] === 404) {
+        await this.createBucket(bucketID);
+      } else {
+        console.log("Time is: " + Date.now() + "\nError is: \n" + error);
+        return;
+      }
     }
-
-    console.log(
-      "Bucket ID is: " + bucketID,
-      "Name is: " + name,
-      "File is: " + file
-    );
 
     const tempFile = await fs.writeFile
       .call(fs, name, file)

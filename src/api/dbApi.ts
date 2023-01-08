@@ -66,7 +66,7 @@ export function dbAPI(app: Express) {
     const { userid, date } = req.params;
     const recapInfo = await storageAPI.readMonthlyRecap(
       date,
-      `${req.params.userid}-${date}.json`
+      `${userid}-${date}.json`
     );
     res.send(recapInfo);
   });

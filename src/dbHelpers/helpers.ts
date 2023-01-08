@@ -37,13 +37,6 @@ export async function updateUserGame(
       JSON.stringify(games),
     );
 
-    // await storageAPI.uploadMonthlyJson(
-    //   JSON.stringify(games),
-    //   `${user.id}/${user.updatedAt.getFullYear()}/${
-    //     user.updatedAt.getMonth() + 1
-    //   }/recap.json`
-    // );
-
     const originalGame = await db.userGame.findFirst({
       where: { id: userGameId },
       include: { game: true },
@@ -106,13 +99,6 @@ export async function createUserGame(
       fileName,
       JSON.stringify(games),
     );
-
-    // await storageAPI.uploadMonthlyJson(
-    //   JSON.stringify(games),
-    //   `${user.id}/${user.updatedAt.getFullYear()}/${
-    //     user.updatedAt.getMonth() + 1
-    //   }/recap.json`
-    // );
 
     await db.userGame.deleteMany({ where: { userId } });
   }
