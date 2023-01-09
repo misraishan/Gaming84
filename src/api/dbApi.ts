@@ -40,7 +40,10 @@ export function dbAPI(app: Express) {
   });
 
   app.get("/api/users/:userid", async (req, res) => {
-    const user = await db.user.findFirst({ where: { id: req.params.userid } });
+    const user = await db.user.findFirst({
+      where: { id: req.params.userid },
+      include: { allTimeStats: true },
+    });
     const currentGame = recentUsers.get(req.params.userid);
     res.send({ ...user, currentGame });
   });
