@@ -16,7 +16,7 @@ model User {
   isOptedIn      Boolean       @default(true)
   lastPlayedGame String?
   lastPlayedTime Int?
-  updatedAt      DateTime      @updatedAt
+  updatedAt      DateTime      @updatedAt @default(now())
   createdAt      DateTime      @default(now())
   allTimeStats   AllTimeStats?
 }
@@ -28,19 +28,18 @@ model Game {
 }
 
 model UserGame {
-  id           Int            @id @default(autoincrement())
-  user         User           @relation(fields: [userId], references: [id])
-  userId       String
-  game         Game           @relation(fields: [gameId], references: [id])
-  gameId       Int
-  time         Int            @default(0)
-  AllTimeStats AllTimeStats[]
+  id     Int    @id @default(autoincrement())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  game   Game   @relation(fields: [gameId], references: [id])
+  gameId Int
+  time   Int    @default(0)
 }
 
 model AllTimeStats {
-  id     Int        @id @default(autoincrement())
-  user   User       @relation(fields: [userId], references: [id])
-  userId String     @unique
-  game   UserGame[]
-  time   BigInt     @default(0)
+  id     Int    @id @default(autoincrement())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+  games  Json
+  time   BigInt @default(0)
 }

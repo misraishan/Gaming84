@@ -1,5 +1,6 @@
 import { db } from "..";
 import storageAPI from "../api/appwriteStore";
+import { allTimeStats } from "./allTime";
 
 export async function createGame(name: string) {
   const game = await db.game.create({ data: { name } });
@@ -28,13 +29,17 @@ export async function updateUserGame(
       include: { game: true },
     });
 
-    const bucketID = `${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}`;
-    const fileName = `${user.id}-${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}.json`;
+    const bucketID = `${user.updatedAt.getFullYear()}-${
+      user.updatedAt.getMonth() + 1
+    }`;
+    const fileName = `${user.id}-${user.updatedAt.getFullYear()}-${
+      user.updatedAt.getMonth() + 1
+    }.json`;
 
     await storageAPI.uploadMonthlyUpdate(
       bucketID,
       fileName,
-      JSON.stringify(games),
+      JSON.stringify(games)
     );
 
     const originalGame = await db.userGame.findFirst({
@@ -69,6 +74,11 @@ export async function updateUserGame(
       lastPlayedGame: userGame?.game.name,
     },
   });
+
+  await allTimeStats.updateStats(userId, {
+    game: userGame?.game.name,
+    time: Math.floor((Date.now() - time) / 1000),
+  });
 }
 
 export async function createUserGame(
@@ -91,13 +101,17 @@ export async function createUserGame(
       include: { game: true },
     });
 
-    const bucketID = `${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}`;
-    const fileName = `${user.id}-${user.updatedAt.getFullYear()}-${user.updatedAt.getMonth() + 1}.json`;
+    const bucketID = `${user.updatedAt.getFullYear()}-${
+      user.updatedAt.getMonth() + 1
+    }`;
+    const fileName = `${user.id}-${user.updatedAt.getFullYear()}-${
+      user.updatedAt.getMonth() + 1
+    }.json`;
 
     await storageAPI.uploadMonthlyUpdate(
       bucketID,
       fileName,
-      JSON.stringify(games),
+      JSON.stringify(games)
     );
 
     await db.userGame.deleteMany({ where: { userId } });
@@ -116,5 +130,11 @@ export async function createUserGame(
     where: { id: userId },
     data: { lastPlayedGame: userGame.game.name, lastPlayedTime: newTime },
   });
+
+  await allTimeStats.updateStats(userId, {
+    game: userGame.game.name,
+    time: newTime,
+  });
+
   return userGame;
 }
