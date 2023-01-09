@@ -35,8 +35,6 @@ export async function statsHandler(
       await interaction.reply(`Could not find <@${userId}> in our database.`);
     }
 
-    const date = new Date();
-
     const embed = new EmbedBuilder()
       .setColor("Purple")
       .setThumbnail(interactionUser.displayAvatarURL())

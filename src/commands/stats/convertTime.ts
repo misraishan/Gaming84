@@ -1,6 +1,7 @@
 import { duration } from "moment";
 
 export function convertToReadableTime(time: number) {
+  if (time === 0) return "0s";
   const dur = duration(time, "seconds");
   let timeString = "";
   if (dur.days() !== 0) timeString += dur.days() + "d ";
