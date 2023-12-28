@@ -19,6 +19,7 @@ import {
   createUserGame,
   createGame,
 } from "./dbHelpers/helpers";
+import { yearlyRecapHandler } from "./commands/stats/yearRecap/yearStats";
 
 config({ path: "../.env" });
 
@@ -87,6 +88,8 @@ client.on("interactionCreate", async (interaction) => {
   const command = interaction.commandName;
   const opts = interaction.options;
 
+   console.log(command);
+
   // Stats command
   if (
     command === "stats" &&
@@ -108,6 +111,9 @@ client.on("interactionCreate", async (interaction) => {
   // Opt in/opt out manager
   if (command === "optout") optout(interaction);
   if (command === "optin") optIn(interaction);
+
+  // Recap
+  if (command === "wrapped") yearlyRecapHandler(interaction);
 });
 
 client.on("interactionCreate", async (interaction) => {
