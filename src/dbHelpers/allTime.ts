@@ -18,7 +18,7 @@ export class allTimeStats {
       await db.allTimeStats.create({
         data: {
           userId: id,
-          games: [{ [game]: time }],
+          games: [{ [game]: time }] as any,
           time: time,
         },
       });
@@ -36,7 +36,7 @@ export class allTimeStats {
           userId: id,
         },
         data: {
-          games: [...(stats.games as any)],
+          games: [...(stats.games as any)] as any,
           time: BigInt(stats.time) + BigInt(time),
         },
       });
