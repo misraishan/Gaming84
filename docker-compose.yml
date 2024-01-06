@@ -1,0 +1,27 @@
+# Basic docker-compose for spinning up postgres, installing node, getting the prisma schema and running the app
+version: "3"
+
+services:
+  postgres:
+    image: postgres:14.0
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gaming84
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+  node:
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - ${PORT}:4000
+    volumes:
+      - .:/app
+    command: bash -c "npm install && npm run prisma:deploy && npm run start"
+    env_file:
+      - .env
