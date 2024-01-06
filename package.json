@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx tsc && cd dist && node index.js",
-    "dev": "cd dist && node index.js"
+    "dev": "cd dist && node index.js",
+    "prisma:deploy": "npx prisma generate && npx prisma migrate dev --name init"
   },
   "keywords": [],
   "author": "HayHay404",
