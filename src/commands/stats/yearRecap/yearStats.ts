@@ -21,7 +21,7 @@ export async function yearlyRecapHandler(
   }
 
   if (userId) {
-    interaction.deferReply();
+    await interaction.deferReply();
     const { image, gameList, error, totalGameTime, uniqueGameCount } =
       await generateYearlyDonut(userId, `${year}`).catch(async (err) => {
         await interaction.editReply(

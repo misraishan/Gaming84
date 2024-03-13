@@ -30,23 +30,24 @@ function getYearlyData(labels: string[], data: string[]) {
 }
 
 export async function generateYearlyDonut(user: string, year: string) {
-  let gameList = await db.userGame.findMany({
-    where: { userId: user },
-    include: { game: true },
-    orderBy: { time: "desc" },
-  });
-
-  console.log(user, year);
+  let gameList =
+    new Date().getFullYear() == parseInt(year)
+      ? await db.userGame.findMany({
+          where: { userId: user },
+          include: { game: true },
+          orderBy: { time: "desc" },
+        })
+      : [];
 
   const appwriteGamesList = [];
   for (let i = 1; i <= 12; i++) {
     try {
       const appwriteGame = await appwriteStore.getFileDownload(
         `${year}-${i}`,
-        `${user}-${2023}-${i}.json`
+        `${user}-${year}-${i}.json`
       );
 
-      //   console.log(appwriteGame.toJSON());
+      // console.log(appwriteGame.toJSON());
       const data = Buffer.from(appwriteGame.toString()).toString();
 
       appwriteGamesList.push(JSON.parse(data));
@@ -59,8 +60,6 @@ export async function generateYearlyDonut(user: string, year: string) {
   // Combine the appwrite games list with the db games list
   appwriteGamesList.forEach((monthList: any) => {
     monthList.forEach((game: any) => {
-      // console.log(game);
-
       const gameIndex = gameList.findIndex((val: any) => {
         return val.game.name == game.game.name;
       });
@@ -82,7 +81,7 @@ export async function generateYearlyDonut(user: string, year: string) {
     });
   });
 
-  if (gameList.length == 0) {
+  if (gameList.length == 0 && appwriteGamesList.length == 0) {
     throw new Error("No games found");
   }
 
